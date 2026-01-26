@@ -1,0 +1,46 @@
+# ============================================================
+# .gitignore - Mattermost Project
+# ============================================================
+
+# Fichiers de configuration sensibles
+.env
+.env.local
+.env.production
+
+# Données des volumes (trop volumineuses pour Git)
+mattermost_app/data/
+mattermost_app/postgres/
+mattermost_app/logs/
+mattermost_app/plugins/
+mattermost_app/client-plugins/
+
+# Garder les dossiers mais ignorer le contenu
+mattermost_app/config/*
+!mattermost_app/config/.gitkeep
+
+# Logs
+*.log
+logs/
+
+# Backups
+backup/
+*.sql
+*.sql.gz
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# Temporary files
+*.tmp
+*.bak
+.backup
+

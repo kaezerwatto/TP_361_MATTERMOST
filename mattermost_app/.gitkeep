@@ -1,0 +1,7 @@
+# Ce dossier contiendra les données persistantes de Mattermost
+# - config/ : Configuration Mattermost
+# - data/ : Fichiers uploadés, avatars
+# - logs/ : Logs de l'application
+# - plugins/ : Plugins installés
+# - client-plugins/ : Plugins côté client
+# - postgres/ : Base de données PostgreSQL

@@ -1,0 +1,105 @@
+# ============================================================
+# Mattermost - Docker Compose Configuration
+# ============================================================
+# Étudiant: AZAB A RANGA FRANCK MIGUEL
+# Matricule: 23V2227
+# INF3611 - Administration Systèmes - Université de Yaoundé I
+# ============================================================
+
+version: "3.8"
+
+services:
+  # ========================================
+  # MATTERMOST - Team Messaging Platform
+  # ========================================
+  mattermost:
+    image: mattermost/mattermost-team-edition:latest
+    container_name: mattermost_23V2227
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Configuration base de données
+      - MM_SQLSETTINGS_DRIVERNAME=postgres
+      - MM_SQLSETTINGS_DATASOURCE=${MM_SQLSETTINGS_DATASOURCE}
+      
+      # Configuration serveur
+      - MM_SERVICESETTINGS_SITEURL=${MATTERMOST_SITE_URL}
+      - MM_SERVICESETTINGS_LISTENADDRESS=:8065
+      - MM_SERVICESETTINGS_ENABLELOCALMODE=true
+      
+      # Configuration email (SMTP)
+      - MM_EMAILSETTINGS_ENABLESMTPAUTH=${MM_EMAIL_ENABLE_SMTP_AUTH}
+      - MM_EMAILSETTINGS_SMTPUSERNAME=${MM_EMAIL_SMTP_USERNAME}
+      - MM_EMAILSETTINGS_SMTPPASSWORD=${MM_EMAIL_SMTP_PASSWORD}
+      - MM_EMAILSETTINGS_SMTPSERVER=${MM_EMAIL_SMTP_SERVER}
+      - MM_EMAILSETTINGS_SMTPPORT=${MM_EMAIL_SMTP_PORT}
+      - MM_EMAILSETTINGS_FEEDBACKEMAIL=${MM_EMAIL_FEEDBACK_EMAIL}
+      - MM_EMAILSETTINGS_ENABLESIGNINWITHEMAIL=true
+      - MM_EMAILSETTINGS_ENABLESIGNINWITHUSERNAME=true
+      
+      # Configuration fichiers
+      - MM_FILESETTINGS_MAXFILESIZE=104857600
+      - MM_FILESETTINGS_DRIVERNAME=local
+      - MM_FILESETTINGS_DIRECTORY=/mattermost/data
+      
+      # Configuration plugins
+      - MM_PLUGINSETTINGS_ENABLE=true
+      - MM_PLUGINSETTINGS_ENABLEUPLOADS=true
+      
+      # Sécurité et performance
+      - MM_SERVICESETTINGS_ENABLEINSECUREOUTGOINGCONNECTIONS=false
+      - MM_LOGSETTINGS_ENABLECONSOLE=true
+      - MM_LOGSETTINGS_CONSOLELEVEL=INFO
+      
+      # Timezone
+      - TZ=${TZ}
+    volumes:
+      # ⚠️ BIND VOLUMES OBLIGATOIRES
+      - ./mattermost_app/config:/mattermost/config:rw
+      - ./mattermost_app/data:/mattermost/data:rw
+      - ./mattermost_app/logs:/mattermost/logs:rw
+      - ./mattermost_app/plugins:/mattermost/plugins:rw
+      - ./mattermost_app/client-plugins:/mattermost/client/plugins:rw
+    ports:
+      - "${MATTERMOST_HTTP_PORT}:8065"
+    networks:
+      - mattermost_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8065/api/v4/system/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ========================================
+  # POSTGRESQL DATABASE
+  # ========================================
+  db:
+    image: postgres:15-alpine
+    container_name: mattermost_db_23V2227
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - TZ=${TZ}
+    volumes:
+      # ⚠️ BIND VOLUME OBLIGATOIRE
+      - ./mattermost_app/postgres:/var/lib/postgresql/data
+    networks:
+      - mattermost_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# ========================================
+# RÉSEAU DOCKER (User-defined bridge)
+# ========================================
+networks:
+  mattermost_network:
+    name: mattermost_network
+    driver: bridge
